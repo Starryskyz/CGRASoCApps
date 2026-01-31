@@ -1,0 +1,2 @@
+这里是放的模型，命名必须是sty.bin
+下载地址https://huggingface.co/karpathy/tinyllamas/tree/main
