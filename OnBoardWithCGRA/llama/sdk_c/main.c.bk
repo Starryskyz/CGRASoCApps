@@ -1,0 +1,90 @@
+#include "cgra.h"
+#include<stdio.h>
+#include "xtime_l.h"
+#include "xparameters.h"
+
+
+static XAxiCdma AxiCdmaInstance;	/* Instance of the XAxiCdma */
+static XScuGic IntcController;	/* Instance of the Interrupt Controller */
+
+
+void matmul(float* xout, float* x, float* w) {
+    // W (d,n) @ x (n,) -> xout (d,)
+    // by far the most amount of time is spent inside this little function
+    int i;
+    // #pragma omp parallel for private(i)
+    for (i = 0; i < 16; i++) {
+        float val = 0.0f;
+        for (int j = 0; j < 512; j++) {
+            val += w[i * 512 + j] * x[j];
+        }
+        xout[i] = val;
+    }
+}
+
+int main(){
+
+	xil_printf("main\r\n");
+
+    int Status;
+	Status = XAxiCdma_Prepare(&IntcController, &AxiCdmaInstance);
+	if (Status != XST_SUCCESS) {
+		xil_printf("XAxiCdma Prepare Failed\r\n");
+		return XST_FAILURE;
+	}
+    float a[512] __attribute__ ((aligned (64)));
+	float b[8192] __attribute__ ((aligned (64)));
+	float c[16] __attribute__ ((aligned (64)));
+	float d[16]__attribute__ ((aligned (64)));
+
+
+    for(int i=0;i<512;i++){
+        a[i] = 1 + i * 0.01;
+
+    }
+
+    for(int i=0;i<16;i++){
+        c[i] = 0.0;
+        d[i] = 0.0;
+
+    }
+
+    for(int i=0;i<8192;i++){
+        b[i] = 1 + i * 0.001;
+    }
+
+
+
+    XTime tEnd1, tbegin1, tEnd2, tbegin2;
+  	XTime_GetTime(&tbegin1);
+    matmul(d,a,b);
+    XTime_GetTime(&tEnd1);
+
+    XTime_GetTime(&tbegin2);
+    mmpart(&AxiCdmaInstance, &IntcController, a, b, c);
+    XTime_GetTime(&tEnd2);
+
+
+    xil_printf("COUNTS_PER_SECOND is %d us\r\n",COUNTS_PER_SECOND);
+    xil_printf("CPU duration %d cycle\r\n",(tEnd1-tbegin1));
+    xil_printf("CGRA duration %d cycle\r\n",(tEnd2-tbegin2));
+
+    for(int i=0;i<16;i++){
+        printf("cpu%f,cgra%f\r\n",d[i],c[i]);
+    }
+
+    //      tused = ((tEnd-tbegin)*1000000)/(COUNTS_PER_SECOND);
+    //  xil_printf("time elapsed is %d us\r\n",tused);
+
+
+	xil_printf("main\r\n");
+
+
+	// Close
+	XAxiCdma_CloseAndClean(&IntcController);
+
+
+    xil_printf("\r\n");
+    return 0;
+}
+
