@@ -126,6 +126,6 @@ extern XScuGic Intr;
 extern Run_Config RunCfg;
 
 
-extern int freez;
+extern volatile int freez;
 
 #endif /* SRC_DPDMA_VIDEO_EXAMPLE_H_ */

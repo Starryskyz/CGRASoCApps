@@ -207,7 +207,6 @@ int main(void)
 	int Status;
 	int i ;
 	int CGRA_en = 1;
-	int CGRA_flag = 0;
 
     FRESULT rc;
     rc = f_mount(&fatfs, "1:/", 0);
@@ -281,12 +280,11 @@ int main(void)
 
 	xil_printf("MAIN FINISHED\r\n");
 
-	int inuuu=0;
+	extern volatile int freez;
 	while(1){
 		if(freez == 1){
 			if(CGRA_en){
 				xil_printf("CGRA EX\r\n");
-//				CGRA_Func(u32* src, u8* picture, u8* yoloout, u32* dst) {
 				CGRA_Func(pFrames[0], picture, outpic, pFrames[0]);
 				xil_printf("CGRA DONE\r\n");
 				CGRA_en = 0;

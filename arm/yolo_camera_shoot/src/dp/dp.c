@@ -315,7 +315,7 @@ int InitDpDmaSubsystem(Run_Config *RunCfgPtr)
 * @note		None.
 *
 *****************************************************************************/
-int freez;
+volatile int freez;
 void GpioHandler2(void *CallBackRef)
 {
 	XGpioPs *GpioPtr = (XGpioPs *)CallBackRef;
